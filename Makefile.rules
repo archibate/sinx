@@ -1,0 +1,17 @@
+
+.PHONY : target clean $(PHONYS)
+
+%.s.o : %.s
+	$(AS) $(AS_FLAGS) -o $@ $<
+
+%.c.o : %.c
+	$(CC) $(CC_FLAGS) -o $@ $<
+
+target : $(TARGET)
+
+$(TARGET) : $(TARGET_OBJS)
+	$(AR) cqs $@ $(TARGET_OBJS)
+
+clean :
+	$(RM) $(TARGET) $(ALL_MODS)
+

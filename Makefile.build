@@ -1,0 +1,3 @@
+ALL_MODS	=$(SRC)/kernel/target.a $(SRC)/tty/target.a
+ALL_MOD_DIRS	=$(SRC)/kernel/ $(SRC)/tty/
+

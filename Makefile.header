@@ -1,0 +1,39 @@
+ARCH		=x86
+BITS		=32
+MARCH		=i386
+MCPU		=
+CROSS		=
+WD		=$(shell pwd)
+#SRC		=$(WD)/..
+#if [ x$(SRC) -e x ]; then
+SRC		=$(PWD)
+#fi
+
+SH		=sh
+MAKE		=make
+GCC		=$(CROSS)gcc
+CC		=$(CROSS)cc
+AS		=$(CROSS)as
+LD		=$(CROSS)ld
+QEMU		=qemu-system-$(MARCH)
+BOCHS		=bochs
+RM		=rm -f
+DD		=dd
+EDIMG		=$(SRC)/tools/edimg
+
+AS_FLAGS	=-I $(WD) -I $(SRC) -I $(SRC)/kernel
+CC_OPTIONS	=-pedantic -W -nostdlib -nostdinc -fomit-frame-pointer -g
+CC_OPTIZIME	=-O0
+CC_WARNNINGS	=-Wall -Wno-parentheses -Wno-long-long \
+		 -Wno-unused-function -Werror=sign-compare -Werror=pedantic \
+		 -Wno-unused-parameter -Werror=type-limits -Wno-comment \
+		 -Werror=array-bounds -Wno-main -Werror=uninitialized \
+		 -Werror=int-to-pointer-cast -Werror=pointer-to-int-cast \
+		 -Werror=int-conversion -Werror=incompatible-pointer-types \
+		 -Werror=implicit-function-declaration -Werror=implicit-int
+CC_DEFINES	=-D__ARCH__=$(ARCH) -D__BITS__=$(BITS) -D__CROSS__=$(CROSS)
+CC_INCLUDES	=-I $(WD) -I $(SRC) -I $(SRC)/kernel
+CC_FLAGS	=-c $(CC_OPTIONS) $(CC_OPTIZIME) $(CC_WARNNINGS) \
+		 $(CC_DEFINES) $(CC_INCLUDES)
+LD_FLAGS	=-N -T kernel.ld
+
