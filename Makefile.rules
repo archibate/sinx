@@ -1,17 +1,15 @@
 
 .PHONY : target clean $(PHONYS)
 
-%.s.o : %.s
-	$(AS) $(AS_FLAGS) -o $@ $<
-
-%.c.o : %.c
-	$(CC) $(CC_FLAGS) -o $@ $<
-
 target : $(TARGET)
 
+include Makefile.complie
+
 $(TARGET) : $(TARGET_OBJS)
-	$(AR) cqs $@ $(TARGET_OBJS)
+	@echo 'AR $@'
+	$(Q)$(AR) cqs $@ $(TARGET_OBJS)
 
 clean :
-	$(RM) $(TARGET) $(ALL_MODS)
+	@echo 'CLEAN $(WD)'
+	$(Q)$(RM) $(TARGET) $(TARGET_OBJS)
 

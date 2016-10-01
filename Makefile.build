@@ -1,3 +1,5 @@
 ALL_MODS	=$(SRC)/kernel/target.a $(SRC)/tty/target.a
 ALL_MOD_DIRS	=$(SRC)/kernel/ $(SRC)/tty/
 
+IMAGE		=$(SRC)/build/Image
+FLOPPY_IMG	=$(SRC)/floppy.img

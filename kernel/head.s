@@ -1,13 +1,25 @@
 .section .tempload.text
+.global	___begin
 .global _start
 .global ___bootloader_info
 .extern _xmain
+
+.equ	MBOOT_HEADER_MAGIC,	0x1BADB002
+.equ	MBOOT_HEADER_FLAGS,	3	# 0011b: PAGE_ALIGN | MEM_INFO
+.equ	MBOOT_CHECKSUM,		-(MBOOT_HEADER_MAGIC + MBOOT_HEADER_FLAGS)
+
+__begin:
+	.long	MBOOT_HEADER_MAGIC
+	.long	MBOOT_HEADER_FLAGS
+	.long	MBOOT_CHECKSUM
 
 _start:
 	ljmp	$0x0008, $_head
 
 _head:
 	cli
+	cmpl	$0x10000000 + MBOOT_HEADER_MAGIC, %eax
+	jne	not_mboot
 	movl	$stack_top, %esp
 	movl	%esp, %ebp
 
@@ -111,6 +123,8 @@ goto_xmain:
 	movl	$stack_top, %esp
 	movl	%esp, %ebp
 	call	_xmain
+
+not_mboot:
 	cli
 	hlt
 

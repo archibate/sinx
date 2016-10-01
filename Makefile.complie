@@ -1,0 +1,8 @@
+
+%.s.o : %.s
+	@echo 'AS $@'
+	$(Q)$(AS) $(AS_FLAGS) -o $@ $<
+
+%.c.o : %.c
+	@echo 'CC $@'
+	$(Q)$(CC) $(CC_FLAGS) -o $@ $<

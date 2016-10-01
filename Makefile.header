@@ -1,7 +1,8 @@
 ARCH		=x86
 BITS		=32
 MARCH		=i386
-MCPU		=
+MACH		=i386
+MCPU		=i386
 CROSS		=
 WD		=$(shell pwd)
 #SRC		=$(WD)/..
@@ -19,10 +20,15 @@ QEMU		=qemu-system-$(MARCH)
 BOCHS		=bochs
 RM		=rm -f
 DD		=dd
+WC		=wc
+CAT		=cat
 EDIMG		=$(SRC)/tools/edimg
+Q		=@
+
 
 AS_FLAGS	=-I $(WD) -I $(SRC) -I $(SRC)/kernel
-CC_OPTIONS	=-pedantic -W -nostdlib -nostdinc -fomit-frame-pointer -g
+CC_OPTIONS	=-m$(BITS) -pedantic -W -nostdlib -nostdinc \
+		 -fomit-frame-pointer -ggdb -gstabs+
 CC_OPTIZIME	=-O0
 CC_WARNNINGS	=-Wall -Wno-parentheses -Wno-long-long \
 		 -Wno-unused-function -Werror=sign-compare -Werror=pedantic \
@@ -35,5 +41,5 @@ CC_DEFINES	=-D__ARCH__=$(ARCH) -D__BITS__=$(BITS) -D__CROSS__=$(CROSS)
 CC_INCLUDES	=-I $(WD) -I $(SRC) -I $(SRC)/kernel
 CC_FLAGS	=-c $(CC_OPTIONS) $(CC_OPTIZIME) $(CC_WARNNINGS) \
 		 $(CC_DEFINES) $(CC_INCLUDES)
-LD_FLAGS	=-N -T kernel.ld
+LD_FLAGS	=-N -m elf_$(MARCH) -T kernel.ld -nostdlib
 
