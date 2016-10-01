@@ -9,7 +9,7 @@ void console_init()
 void console_clear()
 {
 	console_set_cursor(0);
-	u16	*p;
+	u16 *p;
 	for (p = VRAM; p < VRAM + CONS_X * CONS_Y; ++p)
 		*p = 0x0700;
 	console_prints("console module has initialized successfully\n");
@@ -24,6 +24,8 @@ void console_prints(char *s)
 		case '\n':
 			if (p < VRAM + CONS_X * (CONS_Y - 1))
 				p += CONS_X;
+			else
+				console_scrollup();
 		case '\r':
 			p -= (p - VRAM) % CONS_X;
 			continue;
@@ -66,5 +68,14 @@ u16 console_get_cursor()
 			"inb	%%dx, %%al\n"
 			: "=ax" (res) : );
 	return res;
+}
+
+void console_scrollup()		/* 上滚一行 */
+{
+	u16 *p;
+	for (p = VRAM; p < VRAM + CONS_X * (CONS_Y - 1); ++p)
+		*p = *(p + CONS_X);
+	for (; p < VRAM + CONS_X * CONS_Y; ++p)
+		*p = 0x0700;
 }
 

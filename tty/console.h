@@ -15,6 +15,7 @@ void console_clear();
 void console_prints(char *s);
 void console_set_cursor(u16 off);
 u16 console_get_cursor();
+void console_scrollup();
 
 #endif
 
