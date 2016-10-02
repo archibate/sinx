@@ -48,6 +48,17 @@ load_idt:
 	movsl
 	lidt	idtr0
 
+/*
+load_tss:
+	movl	$tss0, %esi
+	movl	$tss0_pa, %edi
+	movl	$tss0_len >> 2, %ecx
+	rep
+	movsl
+	movw	$0x0018, %ax
+	ltr	%ax
+*/
+
 set_pg:
 set_l2pt:
 	movl	$l1pt0_pa + 3, %eax
@@ -87,6 +98,7 @@ gdt0:
 	.quad	0x0000000000000000
 	.quad	0x00CF9A000000FFFF
 	.quad	0x00CF92000000FFFF
+	#.quad	0x00008B083800006C	# TSS at 0x83800
 	.quad	0x0000000000000000
 	.quad	0x0000000000000000
 
@@ -110,9 +122,48 @@ idtr0:
 .endif
 	.long	idt0_pa
 
+	.align	8
+tss0:
+	.long	0		# BACK
+	.long	stack_top	# ESP0
+	.long	0x0010		# SS0
+	.long	0		# ESP1
+	.long	0		# SS1
+	.long	0		# ESP2
+	.long	0		# SS2
+	.long	cr3_value	# CR3
+	.long	0		# EIP
+	.long	0		# EFL
+	.long	0		# EAX
+	.long	0		# ECX
+	.long	0		# EDX
+	.long	0		# EBX
+	.long	0		# ESP
+	.long	0		# EBP
+	.long	0		# ESI
+	.long	0		# EDI
+	.long	0		# ES
+	.long	0		# CS
+	.long	0		# SS
+	.long	0		# DS
+	.long	0		# FS
+	.long	0		# GS
+	.long	0		# LDTR
+	.word	0		# TRAP_SYM
+	.word	tss0_sub_len	# IOMAP_OFF
+				# IOMAP
+	.byte	0xFF		# END_SYMBOL
+
+.equ	tss0_sub_len,	. - tss0
+
+	.align	4
+
+.equ	tss0_len,	. - tss0
+
 .equ	gdt0_pa,	0x80800
 .equ	idt0_pa,	0x80000
 .equ	cr3_value,	l2pt_pa
+.equ	tss0_pa,	0x83800
 .equ	l2pt_pa,	0
 .equ	l1pt0_pa,	0x1000
 /*.equ	l1pt0_max,	0x200

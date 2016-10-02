@@ -1,9 +1,11 @@
 #include <kernel.h>
 #include <console.h>
 
-void console_init()
+void console_modinit()
 {
 	console_clear();
+	/*__console_prints("console module initialized "
+			 "successfully\n", CONS_COL_LI_GREEN);*/
 }
 
 void console_clear()
@@ -12,12 +14,17 @@ void console_clear()
 	u16 *p;
 	for (p = VRAM; p < VRAM + CONS_X * CONS_Y; ++p)
 		*p = 0x0700;
-	console_prints("console module has initialized successfully\n");
 }
 
 void console_prints(char *s)
 {
+	__console_prints(s, 0x07);
+}
+
+void __console_prints(char *s, enum cons_col color)
+{
 	u16 *p = VRAM + console_get_cursor();
+	color <<= 8;
 	char c;
 	while (c = *s++) {
 		switch (c) {
@@ -30,7 +37,7 @@ void console_prints(char *s)
 			p -= (p - VRAM) % CONS_X;
 			continue;
 		}
-		*p++ = c | 0x0700;
+		*p++ = c | color;
 	}
 	console_set_cursor(p - VRAM);
 }

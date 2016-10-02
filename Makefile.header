@@ -27,11 +27,12 @@ Q		=@
 
 
 AS_FLAGS	=-I $(WD) -I $(SRC) -I $(SRC)/kernel
-CC_OPTIONS	=-m$(BITS) -pedantic -W -nostdlib -nostdinc \
+#CC_PEDANTIC	=-pedantic -Werror=pedantic
+CC_OPTIONS	=-m$(BITS) $(CC_PEDANTIC) -std=c99 -W -nostdlib -nostdinc \
 		 -fomit-frame-pointer -ggdb -gstabs+
 CC_OPTIZIME	=-O0
 CC_WARNNINGS	=-Wall -Wno-parentheses -Wno-long-long \
-		 -Wno-unused-function -Werror=sign-compare -Werror=pedantic \
+		 -Wno-unused-function -Werror=sign-compare \
 		 -Wno-unused-parameter -Werror=type-limits -Wno-comment \
 		 -Werror=array-bounds -Wno-main -Werror=uninitialized \
 		 -Werror=int-to-pointer-cast -Werror=pointer-to-int-cast \
