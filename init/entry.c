@@ -1,6 +1,6 @@
 #include <kernel.h>
-#include <kernel/entry.h>
-#include <kernel/init.h>
+#include <init/entry.h>
+#include <init/init.h>
 #include <tty/tty.h>
 
 void _xmain(void)

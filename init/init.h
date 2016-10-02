@@ -1,5 +1,5 @@
-#ifndef	_SINX_KERNEL_INIT_H
-#define	_SINX_KERNEL_INIT_H
+#ifndef	_SINX_INIT_INIT_H
+#define	_SINX_INIT_INIT_H
 
 #define	KMBASE	0xC0000000
 

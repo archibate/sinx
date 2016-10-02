@@ -15,9 +15,9 @@ $(FLOPPY_IMG) : $(IMAGE)
 	sudo cp $< /mnt/img/boot/Image
 	sudo umount /mnt/img
 
-isodir/ : isodir/boot/Image
+$(SRC)/isodir/ : $(SRC)/isodir/boot/Image
 
-isodir/boot/Image : $(IMAGE)
+$(SRC)/isodir/boot/Image : $(IMAGE)
 	cp $< $@
 
 $(IMAGE) : $(SRC)/build/ $(ALL_MOD_STATIC_DIR)

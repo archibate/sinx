@@ -1,7 +1,7 @@
 #ifndef	_SINX_TTY_CONSOLE_H
 #define	_SINX_TTY_CONSOLE_H
 
-#include <kernel/init.h>
+#include <init/init.h>
 
 #define	VRAM_PA	0xB8000
 #define	VRAM_LA	(KMBASE + VRAM_PA)
