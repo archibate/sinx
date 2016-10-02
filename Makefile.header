@@ -1,9 +1,5 @@
-ARCH		=x86
-BITS		=32
-MARCH		=i386
-MACH		=i386
-MCPU		=i386
-CROSS		=
+include Makefile.config
+
 WD		=$(shell pwd)
 #SRC		=$(WD)/..
 #if [ x$(SRC) -e x ]; then
