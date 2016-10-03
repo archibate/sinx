@@ -12,7 +12,8 @@ void tty_modinit()
 	console_modinit();
 	/* 将 tty0 设为控制台 */
 	tty_init(ttys + 0, VRAM, CONS_X, CONS_Y);
-	tty_cputstr(ttys + 0, "Hello, World!\nI'm the Kernel developer: Peng Yubin!\n");
+	curr_tty = ttys + 0;
+	tty_cputstr(curr_tty, "Hello, World!\nI'm the Kernel developer: Peng Yubin!\n");
 }
 
 struct tty *tty_init(struct tty *tty, u16 *buf, twh_t sx, twh_t sy)

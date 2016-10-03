@@ -2,6 +2,8 @@
 #include <mm/pmm.h>
 #include <init/init.h>
 #include <sched/sched.h>
+#include <lib/memory.h>
+#include <tty/tty.h>
 
 pgdi_t pgd_kern[MBR_PER_PGTAB] __attribute__((aligned(PAGESZ)));
 ptei_t ptes_kern[PTE_KERN_COUNT][MBR_PER_PGTAB] __attribute__((aligned(PAGESZ)));
@@ -23,9 +25,23 @@ void pmm_modinit()
 	phy_t pgd_kern_pa = klin2phy((lin_t) pgd_kern);
 	switch_pgd(pgd_kern_pa);
 
-	/*pmm_map(pgd_kern, 0xC0000000, 0x100000, PAGE_PRESENT);
+	pmm_map(pgd_kern, 0xC0000000, 0x100000, PAGE_PRESENT);
 	if ((* (u32 *) 0xC0100000) != (* (u32 *) 0xC0000000))
-		__asm__ ("cli;hlt");/**/
+		tty_cputstr_color(curr_tty, "PMM: map failed!\n",
+				CONS_COL_LRED);/**/
+	else
+		tty_cputstr_color(curr_tty, "PMM: map successfully\n",
+				CONS_COL_GREEN);/**/
+	if (!pmm_unmap(pgd_kern, 0xC0000000))
+		tty_cputstr_color(curr_tty, "PMM: unmap failed!\n",
+				CONS_COL_LRED);/**/
+	else
+		tty_cputstr_color(curr_tty, "PMM: unmap successfully\n",
+				CONS_COL_GREEN);/**/
+	if (!pmm_map(pgd_kern, 0x30000000, 0x10000, PAGE_PRESENT))
+		tty_cputstr_color(curr_tty, "PMM: new map failed!\n",
+				CONS_COL_LRED);/**/
+	__asm__ ("cli;hlt");
 }
 
 void switch_pgd(phy_t pgd_pa)
@@ -38,11 +54,14 @@ int pmm_map(pgdi_t *pgd, lin_t la, phy_t pa, u8 flags)
 	ndx_t npgdi = lin2npgdi(la);
 	ndx_t nptei = lin2nptei(la);
 	ptei_t *pte = (ptei_t *) (pgd[npgdi] & PG_MASK);
-	if (!pte) {
+	if (!pte) {	/* 该线性地址没有对应的 PTE */
+		/* 申请一页内存用作 PTE */
 		pte = (ptei_t *) pmm_alloc_page();
 		if (!pte)
 			return FALSE;
 		pgd[npgdi] = (r_t) pte | PAGE_PRESENT | PAGE_WRITEABLE;
+		pte = (ptei_t *) kphy2lin((r_t) pte);
+		bzero_long(pte, PAGESZ >> 2);
 	} else {
 		pte = (ptei_t *) kphy2lin((r_t) pte);
 	}
@@ -55,8 +74,8 @@ int pmm_unmap(pgdi_t *pgd, lin_t la)
 {
 	ndx_t npgdi = lin2npgdi(la);
 	ndx_t nptei = lin2nptei(la);
-	ptei_t *pte = (ptei_t *) (pgd[npgdi] * PG_MASK);
-	if (!page_valid(pte))
+	ptei_t *pte = (ptei_t *) (pgd[npgdi] & PG_MASK);
+	if (!pte)
 		return FALSE;
 	pte = (ptei_t *) kphy2lin((r_t) pte);
 	pte[nptei] = 0;	/* set to NULL */
@@ -67,6 +86,7 @@ int pmm_unmap(pgdi_t *pgd, lin_t la)
 lin_t pmm_alloc_page()
 {
 	lin_t la = 0;
+out:
 	return la;
 }
 
@@ -76,10 +96,10 @@ phy_t pmm_get_mapping(pgdi_t *pgd, lin_t la)
 	ndx_t npgdi = lin2npgdi(la);
 	ndx_t nptei = lin2nptei(la);
 	ptei_t *pte = (ptei_t *) (pgd[npgdi] * PG_MASK);
-	if (!page_valid(pte))
+	if (!pte)
 		goto out;
 	pte = (ptei_t *) kphy2lin((r_t) pte);
-	if (!page_valid(pte[nptei]))
+	if (!pte[nptei])
 		goto out;
 	pa = pte[nptei] & PG_MASK;
 out:

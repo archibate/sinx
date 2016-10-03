@@ -7,6 +7,6 @@
 
 void isr_handler_0x30(void)
 {
-	tty_putstr(curr_tty, "ISR handler 0x30 entered");
+	tty_cputstr(curr_tty, "ISR handler 0x30 entered\n");
 }
 

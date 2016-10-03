@@ -3,9 +3,6 @@
 
 #include <init/init.h>
 
-#ifndef	KMBASE
-#define	KMBASE	0xC0000000
-#endif
 
 #define	PAGE_PRESENT	0x1
 #define	PAGE_WRITEABLE	0x2
@@ -14,6 +11,11 @@
 #define	PG_MASK		0xFFFFF000
 #define	MBR_PER_PGTAB	(PAGESZ / sizeof(r_t))
 #define	PTE_KERN_COUNT	0x40
+#define	KERN_HIMAP_BASE	0xC0000000
+#ifndef	KMBASE
+#define	KMBASE	KERN_HIMAP_BASE
+#endif
+#define	KERN_HIMAP_SIZE	(PTE_KERN_COUNT * PAGESZ)
 #define	lin2npgdi(la)	(((la) >> 22) & 0x3FF)
 #define	lin2nptei(la)	(((la) >> 12) & 0x3FF)
 #define	lin2pgoff(la)	((la) & 0xFFF)

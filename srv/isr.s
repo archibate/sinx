@@ -552,6 +552,7 @@ isr_entry_route:	# 中断服务入口的标准路线
 	movw	%ax, %fs
 	movw	%ax, %gs
 	movl	48(%esp), %eax
+	call	isr_handler_0x30
 	.word	0xF4FA
 	call	*isr_handler_table(, %eax, 4)
 	popl	%gs
