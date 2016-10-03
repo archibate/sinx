@@ -26,6 +26,7 @@ typedef signed short s16;
 typedef signed long s32;
 typedef signed long long s64;
 typedef u32 r_t;
+typedef r_t ndx_t;
 typedef void *vp_t;
 typedef u8 *va_list_t;
 typedef u8 byte_t;

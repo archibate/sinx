@@ -56,7 +56,11 @@ void console_set_cursor(u16 off)
 			"incw	%%dx\n"
 			"movb	%%ah, %%al\n"
 			"outb	%%al, %%dx\n"
+#ifdef	__TCC__
+			:: "c" (off));
+#else
 			:: "cx" (off));
+#endif
 }
 
 u16 console_get_cursor()
@@ -73,7 +77,11 @@ u16 console_get_cursor()
 			"outb	%%al, %%dx\n"
 			"incw	%%dx\n"	
 			"inb	%%dx, %%al\n"
+#ifdef	__TCC__
+			: "=a" (res) : );
+#else
 			: "=ax" (res) : );
+#endif
 	return res;
 }
 

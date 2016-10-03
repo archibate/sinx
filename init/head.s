@@ -20,7 +20,7 @@ _head:
 	cli
 	cmpl	$0x10000000 + MBOOT_HEADER_MAGIC, %eax
 	jne	not_mboot
-	movl	$stack_top, %esp
+	movl	$stack_top0, %esp
 	movl	%esp, %ebp
 
 load_gdt:
@@ -95,12 +95,14 @@ to_retf:
 
 	.align	8
 gdt0:
-	.quad	0x0000000000000000
-	.quad	0x00CF9A000000FFFF
-	.quad	0x00CF92000000FFFF
+	.quad	0x0000000000000000	# NULL
+	.quad	0x00CF9A000000FFFF	# SYS_CODE
+	.quad	0x00CF92000000FFFF	# SYS_DATA
+	.quad	0x00CFFA000000FFFF	# USR_CODE
+	.quad	0x00CFF2000000FFFF	# USR_DATA
 	#.quad	0x00008B083800006C	# TSS at 0x83800
-	.quad	0x0000000000000000
-	.quad	0x0000000000000000
+	.quad	0x0000000000000000	# reserved for TSS
+	.quad	0x0000000000000000	# reserved for LDT
 
 .equ	gdt0_len,	. - gdt0
 
@@ -180,5 +182,8 @@ not_mboot:
 	hlt
 
 	.org	0x400, 0
-stack_top:
+stack_top0:
+
+.equ	stack_top,	stack_top0 + 0xC0000000
+
 
