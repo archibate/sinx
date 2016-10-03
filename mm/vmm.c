@@ -1,5 +1,5 @@
 #include <kernel.h>
-#include <mm/pmm.h>
+#include <mm/vmm.h>
 #include <init/init.h>
 #include <sched/sched.h>
 #include <lib/memory.h>
@@ -8,9 +8,9 @@
 pgdi_t pgd_kern[MBR_PER_PGTAB] __attribute__((aligned(PAGESZ)));
 ptei_t ptes_kern[PTE_KERN_COUNT][MBR_PER_PGTAB] __attribute__((aligned(PAGESZ)));
 
-static inline void pmm_cpu_invlpg(lin_t la);
+static inline void vmm_cpu_invlpg(lin_t la);
 
-void pmm_modinit()
+void vmm_modinit()
 {
 	ndx_t kern_npgdi0 = lin2npgdi(KMBASE);
 	r_t i, j;
@@ -23,40 +23,40 @@ void pmm_modinit()
 	for (i = 0; i < PTE_KERN_COUNT * MBR_PER_PGTAB; ++i)
 		pte0_kern[i] = (i << 12) | PAGE_PRESENT | PAGE_WRITEABLE;
 	phy_t pgd_kern_pa = klin2phy((lin_t) pgd_kern);
-	switch_pgd(pgd_kern_pa);
+	vmm_switch_pgd(pgd_kern_pa);
 
-	pmm_map(pgd_kern, 0xC0000000, 0x100000, PAGE_PRESENT);
+	vmm_map(pgd_kern, 0xC0000000, 0x100000, PAGE_PRESENT);
 	if ((* (u32 *) 0xC0100000) != (* (u32 *) 0xC0000000))
 		tty_cputstr_color(curr_tty, "PMM: map failed!\n",
 				CONS_COL_LRED);/**/
 	else
-		tty_cputstr_color(curr_tty, "PMM: map successfully\n",
+		tty_cputstr_color(curr_tty, "VMM: map successfully\n",
 				CONS_COL_GREEN);/**/
-	if (!pmm_unmap(pgd_kern, 0xC0000000))
-		tty_cputstr_color(curr_tty, "PMM: unmap failed!\n",
+	if (!vmm_unmap(pgd_kern, 0xC0000000))
+		tty_cputstr_color(curr_tty, "VMM: unmap failed!\n",
 				CONS_COL_LRED);/**/
 	else
-		tty_cputstr_color(curr_tty, "PMM: unmap successfully\n",
+		tty_cputstr_color(curr_tty, "VMM: unmap successfully\n",
 				CONS_COL_GREEN);/**/
-	if (!pmm_map(pgd_kern, 0x30000000, 0x10000, PAGE_PRESENT))
-		tty_cputstr_color(curr_tty, "PMM: new map failed!\n",
+	if (!vmm_map(pgd_kern, 0x30000000, 0x10000, PAGE_PRESENT))
+		tty_cputstr_color(curr_tty, "VMM: new map failed!\n",
 				CONS_COL_LRED);/**/
 	__asm__ ("cli;hlt");
 }
 
-void switch_pgd(phy_t pgd_pa)
+void vmm_switch_pgd(phy_t pgd_pa)
 {
 	__asm__ ("mov	%0, %%cr3" :: "r" (pgd_pa));
 }
 
-int pmm_map(pgdi_t *pgd, lin_t la, phy_t pa, u8 flags)
+int vmm_map(pgdi_t *pgd, lin_t la, phy_t pa, u8 flags)
 {
 	ndx_t npgdi = lin2npgdi(la);
 	ndx_t nptei = lin2nptei(la);
 	ptei_t *pte = (ptei_t *) (pgd[npgdi] & PG_MASK);
 	if (!pte) {	/* 该线性地址没有对应的 PTE */
 		/* 申请一页内存用作 PTE */
-		pte = (ptei_t *) pmm_alloc_page();
+		pte = (ptei_t *) vmm_alloc_page();
 		if (!pte)
 			return FALSE;
 		pgd[npgdi] = (r_t) pte | PAGE_PRESENT | PAGE_WRITEABLE;
@@ -66,11 +66,11 @@ int pmm_map(pgdi_t *pgd, lin_t la, phy_t pa, u8 flags)
 		pte = (ptei_t *) kphy2lin((r_t) pte);
 	}
 	pte[nptei] = (pa & PG_MASK) | flags;
-	pmm_cpu_invlpg(la);
+	vmm_cpu_invlpg(la);
 	return TRUE;
 }
 
-int pmm_unmap(pgdi_t *pgd, lin_t la)
+int vmm_unmap(pgdi_t *pgd, lin_t la)
 {
 	ndx_t npgdi = lin2npgdi(la);
 	ndx_t nptei = lin2nptei(la);
@@ -79,18 +79,18 @@ int pmm_unmap(pgdi_t *pgd, lin_t la)
 		return FALSE;
 	pte = (ptei_t *) kphy2lin((r_t) pte);
 	pte[nptei] = 0;	/* set to NULL */
-	pmm_cpu_invlpg(la);
+	vmm_cpu_invlpg(la);
 	return TRUE;
 }
 
-lin_t pmm_alloc_page()
+lin_t vmm_alloc_page()
 {
 	lin_t la = 0;
 out:
 	return la;
 }
 
-phy_t pmm_get_mapping(pgdi_t *pgd, lin_t la)
+phy_t vmm_get_mapping(pgdi_t *pgd, lin_t la)
 {
 	phy_t pa = 0;	/* NULL */
 	ndx_t npgdi = lin2npgdi(la);
@@ -106,7 +106,7 @@ out:
 	return pa;
 }
 
-static inline void pmm_cpu_invlpg(lin_t la)
+static inline void vmm_cpu_invlpg(lin_t la)
 {
 	__asm__ ("invlpg (%0)" :: "a" (la));
 }

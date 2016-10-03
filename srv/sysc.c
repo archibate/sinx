@@ -3,7 +3,7 @@
 #include <sched/sched.h>
 #include <sched/context.h>
 #include <tty/tty.h>
-#include <mm/pmm.h>
+#include <mm/vmm.h>
 
 void isr_handler_0x30(void)
 {

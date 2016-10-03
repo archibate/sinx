@@ -1,5 +1,5 @@
-#ifndef	_SINX_MM_PMM_H
-#define	_SINX_MM_PMM_H
+#ifndef	_SINX_MM_VMM_H
+#define	_SINX_MM_VMM_H
 
 #include <init/init.h>
 
@@ -30,12 +30,12 @@ typedef r_t pg_t;	/* Page Descriptor */
 typedef pg_t pgdi_t;	/* PGD Item */
 typedef pg_t ptei_t;	/* PTE Item */
 
-void pmm_modinit();
-void switch_pgd(phy_t pgd_pa);
-int pmm_map(pgdi_t *pgd, lin_t la, phy_t pa, u8 flags);
-int pmm_unmap(pgdi_t *pgd, lin_t la);
-lin_t pmm_alloc_page();
-phy_t pmm_get_mapping(pgdi_t *pgd, lin_t la);
+void vmm_modinit();
+void vmm_switch_pgd(phy_t pgd_pa);
+int vmm_map(pgdi_t *pgd, lin_t la, phy_t pa, u8 flags);
+int vmm_unmap(pgdi_t *pgd, lin_t la);
+lin_t vmm_alloc_page();
+phy_t vmm_get_mapping(pgdi_t *pgd, lin_t la);
 
 #endif
 

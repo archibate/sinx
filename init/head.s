@@ -2,16 +2,23 @@
 .global	___begin
 .global _start
 .global ___bootloader_info
+.global ___mboot_header
 .extern _xmain
+.global	headwork_is_done
+.extern mboot_ptr
 
 .equ	MBOOT_HEADER_MAGIC,	0x1BADB002
 .equ	MBOOT_HEADER_FLAGS,	3	# 0011b: PAGE_ALIGN | MEM_INFO
 .equ	MBOOT_CHECKSUM,		-(MBOOT_HEADER_MAGIC + MBOOT_HEADER_FLAGS)
 
-__begin:
+___begin:
+___mboot_header:
 	.long	MBOOT_HEADER_MAGIC
 	.long	MBOOT_HEADER_FLAGS
 	.long	MBOOT_CHECKSUM
+
+mboot_tmp_ptr:
+	.long	0
 
 _start:
 	ljmp	$0x0008, $_head
@@ -20,7 +27,11 @@ _head:
 	cli
 	cmpl	$0x10000000 + MBOOT_HEADER_MAGIC, %eax
 	jne	not_mboot
+	movl	%ebx, mboot_tmp_ptr
+not_mboot:
+
 	movl	$stack_top0, %esp
+	andl	$-15, %esp
 	movl	%esp, %ebp
 
 load_gdt:
@@ -106,7 +117,7 @@ reload_sregs:
 	pushl	$0x0008
 	call	to_retf
 
-	jmp	goto_xmain
+	jmp	headwork_is_done
 
 to_retf:
 	retf
@@ -209,15 +220,15 @@ tss0:
 .equ	l1pt1_pa,	l1pt0_pa + l1pt0_max * 4
 .equ	l1pt1_max,	0x10000*/
 
-goto_xmain:
+headwork_is_done:
+	movl	mboot_tmp_ptr, %eax
+	movl	%eax, mboot_ptr
+
 	movl	$stack_top, %esp
 	movl	%esp, %ebp
-	call	_xmain
+	andl	$-15, %esp
 
-not_mboot:
-	movl	$0xCCCC, 0xB8000
-	cli
-	hlt
+	call	_xmain
 
 	.org	0x800, 0
 stack_top0:

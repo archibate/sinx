@@ -5,6 +5,7 @@
 #define	CODE_SELECTOR	0x0008
 #define	DATA_SELECTOR	0x0010
 
+extern void *mboot_ptr;
 void /*__init_text*/ kernel_modinit(void);
 
 #endif
