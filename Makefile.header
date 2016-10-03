@@ -1,9 +1,5 @@
-ARCH		=x86
-BITS		=32
-MARCH		=i386
-MACH		=i386
-MCPU		=i386
-CROSS		=
+include Makefile.config
+
 WD		=$(shell pwd)
 #SRC		=$(WD)/..
 #if [ x$(SRC) -e x ]; then
@@ -25,20 +21,23 @@ CAT		=cat
 EDIMG		=$(SRC)/tools/edimg
 Q		=@
 
-
-AS_FLAGS	=-I $(WD) -I $(SRC) -I $(SRC)/kernel
-CC_OPTIONS	=-m$(BITS) -pedantic -W -nostdlib -nostdinc \
+INCLUDES	=-I $(WD) -I $(SRC) -I $(SRC)/include
+AS_FLAGS	=$(INCLUDES)
+#CC_PEDANTIC	=-pedantic -Werror=pedantic
+CC_OPTIONS	=-m$(BITS) $(CC_PEDANTIC) -std=c99 -W -nostdlib -nostdinc \
 		 -fomit-frame-pointer -ggdb -gstabs+
-CC_OPTIZIME	=-O0
+OPTIZIME	=0
+CC_OPTIZIME	=-O$(OPTIZIME)
 CC_WARNNINGS	=-Wall -Wno-parentheses -Wno-long-long \
-		 -Wno-unused-function -Werror=sign-compare -Werror=pedantic \
+		 -Wno-unused-function -Werror=sign-compare \
 		 -Wno-unused-parameter -Werror=type-limits -Wno-comment \
 		 -Werror=array-bounds -Wno-main -Werror=uninitialized \
 		 -Werror=int-to-pointer-cast -Werror=pointer-to-int-cast \
 		 -Werror=int-conversion -Werror=incompatible-pointer-types \
 		 -Werror=implicit-function-declaration -Werror=implicit-int
-CC_DEFINES	=-D__ARCH__=$(ARCH) -D__BITS__=$(BITS) -D__CROSS__=$(CROSS)
-CC_INCLUDES	=-I $(WD) -I $(SRC) -I $(SRC)/kernel
+CC_DEFINES	=-D__ARCH__=$(ARCH) -D__BITS__=$(BITS) -D__CROSS__=$(CROSS) \
+		 -D__KERNEL__=1 -D__OPTIZIME__=$(OPTIMIZE)
+CC_INCLUDES	=$(INCLUDES)
 CC_FLAGS	=-c $(CC_OPTIONS) $(CC_OPTIZIME) $(CC_WARNNINGS) \
 		 $(CC_DEFINES) $(CC_INCLUDES)
 LD_FLAGS	=-N -m elf_$(MARCH) -T kernel.ld -nostdlib

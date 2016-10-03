@@ -15,19 +15,19 @@ $(FLOPPY_IMG) : $(IMAGE)
 	sudo cp $< /mnt/img/boot/Image
 	sudo umount /mnt/img
 
-isodir/ : isodir/boot/Image
+$(SRC)/isodir/ : $(SRC)/isodir/boot/Image
 
-isodir/boot/Image : $(IMAGE)
+$(SRC)/isodir/boot/Image : $(IMAGE)
 	cp $< $@
 
-$(IMAGE) : $(SRC)/build/ $(ALL_MOD_DIRS)
+$(IMAGE) : $(SRC)/build/ $(ALL_MOD_STATIC_DIR)
 	$(MAKE) -r target -C build/ -I $(SRC)
 
 clean :
 	#$(MAKE) -r $@ -C boot/ -I $(SRC)
 	$(MAKE) -r $@ -C build/ -I $(SRC)
 
-#$(HDA_IMG) : $(SRC)/boot/ $(SRC)/build/ $(ALL_MOD_DIRS)
+#$(HDA_IMG) : $(SRC)/boot/ $(SRC)/build/ $(ALL_MOD_DIR)
 	#$(MAKE) -r target -C boot/ -I $(SRC)
 	#$(MAKE) -r target -C build/ -I $(SRC)
 	#$(EDIMG) $@ 10485760 boot/boot 0x1000 0 build/Image 0x4000 0x4000
