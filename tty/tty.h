@@ -21,6 +21,9 @@ struct tty {
 			__tty_putdata(_tty, *_s++ | _color); \
 	 })
 
+extern struct tty ttys[TTYS_MAX];
+extern struct tty *curr_tty;
+
 void tty_modinit();
 struct tty *tty_init(struct tty *tty, u16 *buf, twh_t sx, twh_t sy);
 void tty_clear(struct tty *tty);

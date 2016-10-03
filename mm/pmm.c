@@ -18,7 +18,7 @@ void pmm_modinit()
 		pgd_kern[i] = klin2phy((lin_t) (ptes_kern + j))
 			    | PAGE_PRESENT | PAGE_WRITEABLE;
 	r_t *pte0_kern = (r_t *) ptes_kern;
-	for (i = 1; i < PTE_KERN_COUNT * MBR_PER_PGTAB; ++i)
+	for (i = 0; i < PTE_KERN_COUNT * MBR_PER_PGTAB; ++i)
 		pte0_kern[i] = (i << 12) | PAGE_PRESENT | PAGE_WRITEABLE;
 	phy_t pgd_kern_pa = klin2phy((lin_t) pgd_kern);
 	switch_pgd(pgd_kern_pa);
@@ -79,9 +79,9 @@ phy_t pmm_get_mapping(pgdi_t *pgd, lin_t la)
 	if (!page_valid(pte))
 		goto out;
 	pte = (ptei_t *) kphy2lin((r_t) pte);
-	if (page_valid(pte[nptei])) {
-		pa = pte[nptei] & PG_MASK;
-	}
+	if (!page_valid(pte[nptei]))
+		goto out;
+	pa = pte[nptei] & PG_MASK;
 out:
 	return pa;
 }

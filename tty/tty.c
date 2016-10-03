@@ -2,9 +2,11 @@
 #include <tty/tty.h>
 #include <tty/console.h>
 
+struct tty ttys[TTYS_MAX];
+struct tty *curr_tty;
+
 static inline void __tty_set_cursor(struct tty *tty, twh_t x, twh_t y);
 
-struct tty ttys[TTYS_MAX];
 void tty_modinit()
 {
 	console_modinit();

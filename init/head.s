@@ -31,21 +31,29 @@ load_gdt:
 	movsl
 	lgdt	gdtr0
 
-	pushl	$0x0008
-	call	to_retf
-	movw	$0x0010, %ax
-	movw	%ax, %ds
-	movw	%ax, %es
-	movw	%ax, %ss
-	movw	%ax, %fs
-	movw	%ax, %gs
-
 load_idt:
-	movl	$idt0, %esi
+	#movl	$idt0, %esi
+	#xorl	%eax, %eax
+	#movl	$idt0_pa, %edi
+	#movl	$idt0_len >> 2, %ecx
+	#rep
+	#stosl
+.set_isr_entrys:
+.extern	isr_entry_table
+	movl	$isr_entry_table - 0xC0000000, %esi
 	movl	$idt0_pa, %edi
-	movl	$idt0_len >> 2, %ecx
-	rep
-	movsl
+	movl	$256, %ecx
+.next_desc:
+	movl	$0x00080000, %eax
+	movw	(%esi), %ax	# 入口点低16位
+	stosl
+	lodsl			# 入口点高16位
+	movw	$0x8E00, %ax
+	stosl
+	#idt0_pa:
+	#.long	0x00080000 | (handler_entry & 0xFFFF)
+	#.long	0x00008E00 | (handler_entry & 0xFFFF0000)
+	loop	.next_desc
 	lidt	idtr0
 
 /*
@@ -59,19 +67,19 @@ load_tss:
 	ltr	%ax
 */
 
-set_pg:
-set_l2pt:
-	movl	$l1pt0_pa + 3, %eax
-	movl	$l2pt_pa, %edi
+set_tmp_page_table:
+set_tmp_pgd:
+	movl	$tmp_pte0_pa + 3, %eax
+	movl	$tmp_pgd_pa, %edi
 	stosl
 	addl	$0x1000, %eax
-	movl	$l2pt_pa + (0xC0000 >> 8), %edi
+	movl	$tmp_pgd_pa + (0xC0000 >> 8), %edi
 	stosl
 
-set_l1pt:
+set_tmp_pte:
 	movl	$1024, %ecx	# 映射物理地址前 4MB
 	movl	$3, %eax
-	movl	$l1pt0_pa, %edi
+	movl	$tmp_pte0_pa, %edi
 .loop1:	stosl
 	addl	$0x1000, %eax
 	loop	.loop1
@@ -87,6 +95,16 @@ set_cr3:
 	movl	%cr0, %eax
 	orl	$0x80000000, %eax
 	movl	%eax, %cr0
+
+reload_sregs:
+	movw	$0x0010, %ax
+	movw	%ax, %ds
+	movw	%ax, %es
+	movw	%ax, %ss
+	movw	%ax, %fs
+	movw	%ax, %gs
+	pushl	$0x0008
+	call	to_retf
 
 	jmp	goto_xmain
 
@@ -108,21 +126,38 @@ gdt0:
 
 gdtr0:
 	.word	gdt0_len - 1
-	.long	gdt0_pa
+	.long	gdt0_la
 
-	.align	8
-idt0:
+#	.align	8
+#idt0:
 	#.quad	0x0000000000000000
+	//.equ	temp,	0x00008E0000080000 | (isr_handler_0x00 & 0xFFFF) | ((isr_handler_0x00 << 32) & 0xFFFF0000)
+	#.long	0x00080000 | (handler_entry & 0xFFFF)
+	#.equ	handler_entry, isr_handler_0x00
+	#.long	0x00008E00 | (handler_entry & 0xFFFF0000)
+	//.quad	temp
 
-.equ	idt0_len,	. - idt0
+/*
+struct idt_entry {
+	u16 base_lo;
+	u16 code_sel;
+	u8 always_zero;
+	u8 flags;
+	u16 base_hi;
+};
+*/
+
+#.equ	idt0_len,	. - idt0
+.equ	idt0_len,	0x800
 
 idtr0:
-.if	idt0_len
-	.word	idt0_len - 1
-.else
-	.word	0
-.endif
-	.long	idt0_pa
+#.if	idt0_len
+#	.word	idt0_len - 1
+#.else
+	.word	idt0_len
+#.endif
+	.long	idt0_la		# 注意：IDTR 中的 IDT 表基地址是线性地址
+				# 现在 IDT 还不能用，要在分页机制开启后才行
 
 	.align	8
 tss0:
@@ -162,12 +197,14 @@ tss0:
 
 .equ	tss0_len,	. - tss0
 
-.equ	gdt0_pa,	0x80800
-.equ	idt0_pa,	0x80000
-.equ	cr3_value,	l2pt_pa
+.equ	gdt0_pa,	0x800
+.equ	gdt0_la,	gdt0_pa + 0xC0000000
+.equ	idt0_pa,	0x0
+.equ	idt0_la,	idt0_pa + 0xC0000000
+.equ	cr3_value,	tmp_pgd_pa
 .equ	tss0_pa,	0x83800
-.equ	l2pt_pa,	0
-.equ	l1pt0_pa,	0x1000
+.equ	tmp_pgd_pa,	0x80000
+.equ	tmp_pte0_pa,	0x81000
 /*.equ	l1pt0_max,	0x200
 .equ	l1pt1_pa,	l1pt0_pa + l1pt0_max * 4
 .equ	l1pt1_max,	0x10000*/
@@ -178,10 +215,11 @@ goto_xmain:
 	call	_xmain
 
 not_mboot:
+	movl	$0xCCCC, 0xB8000
 	cli
 	hlt
 
-	.org	0x400, 0
+	.org	0x800, 0
 stack_top0:
 
 .equ	stack_top,	stack_top0 + 0xC0000000

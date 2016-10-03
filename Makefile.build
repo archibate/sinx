@@ -1,9 +1,9 @@
-ALL_MOD_NAME		=init tty lib sched mm
+ALL_MOD_NAME		=init srv sched mm tty lib
 ALL_MOD_DIR		=$(foreach mod_name, $(ALL_MOD_NAME), \
 			 $(SRC)/$(mod_name)/)
 ALL_MOD			=$(foreach mod_dir, $(ALL_MOD_DIR), \
 			 $(mod_dir)target.a)
-ALL_MOD_AR_NAME		=init tty lib sched mm
+ALL_MOD_AR_NAME		=init srv sched mm tty lib
 ALL_MOD_AR_DIR		=$(foreach mod_name, $(ALL_MOD_AR_NAME), \
 			 $(SRC)/$(mod_name)/)
 ALL_MOD_AR		=$(foreach mod_dir, $(ALL_MOD_AR_DIR), \
